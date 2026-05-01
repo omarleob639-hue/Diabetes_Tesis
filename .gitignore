@@ -70,3 +70,10 @@ antigravity/
 *.thm
 *.fdb_latexmk
 *.fls
+# Data (Datasets clínicos)
+diabetes-predictor/data/*.csv
+diabetes-predictor/data/*.xlsx
+diabetes-predictor/data/*.json
+diabetes-predictor/data/raw/*
+diabetes-predictor/data/processed/*
+!diabetes-predictor/data/.gitkeep
