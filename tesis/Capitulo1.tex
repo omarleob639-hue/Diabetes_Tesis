@@ -1,0 +1,133 @@
+
+\chapter{Preliminares}
+\label{capitulo1}
+%\minitoc
+ 
+\section{Contexto y motivaci\'on}
+
+En las \'ultimas d\'ecadas, la diabetes mellitus se ha consolidado como una de las enfermedades cr\'onicas no transmisibles de mayor impacto en los sistemas de salud a nivel mundial. En el contexto mexicano, su prevalencia ha mostrado un crecimiento sostenido, asociado a factores como el incremento en la obesidad, el sedentarismo, los cambios en los patrones alimenticios y el envejecimiento poblacional. Esta situaci\'on ha generado una presi\'on significativa sobre los servicios sanitarios, tanto en el \'ambito preventivo como en el tratamiento de complicaciones cr\'onicas derivadas de esta condici\'on.
+
+Desde una perspectiva tecnol\'ogica, el avance de la inteligencia artificial, particularmente de las redes neuronales artificiales, ha permitido el desarrollo de modelos predictivos capaces de analizar grandes vol\'umenes de datos cl\'inicos con altos niveles de precisi\'on. En el \'ambito m\'edico, estas herramientas han demostrado un gran potencial para apoyar procesos de diagn\'ostico, pron\'ostico y estratificaci\'on de riesgo, contribuyendo a una medicina m\'as preventiva y personalizada.
+
+No obstante, a pesar de estos avances, la aplicaci\'on de modelos inteligentes en la detecci\'on de la diabetes presenta limitaciones importantes. La mayor\'ia de los sistemas desarrollados se orientan a un solo tipo de diabetes o se centran en variables cl\'inicas espec\'ificas, lo que dificulta una evaluaci\'on integral del riesgo en poblaciones diversas. Esta fragmentaci\'on tecnol\'ogica contrasta con la complejidad cl\'inica de la enfermedad, la cual se manifiesta en distintos tipos con caracter\'isticas fisiopatol\'ogicas particulares.
+
+En este sentido, surge la motivaci\'on de integrar enfoques computacionales avanzados en un modelo unificado que permita evaluar, de manera simult\'anea, la probabilidad de desarrollar diabetes tipo 1, tipo 2 o gestacional. La presente investigaci\'on se orienta a contribuir al fortalecimiento de estrategias de detecci\'on temprana mediante herramientas tecnol\'ogicas que apoyen la toma de decisiones m\'edicas, especialmente en entornos donde los recursos especializados son limitados.
+
+As\'i, el desarrollo de un sistema predictivo integral no solo responde a una problem\'atica sanitaria vigente, sino tambi\'en a una oportunidad cient\'ifica de innovaci\'on en el campo de la inteligencia artificial aplicada a la salud.
+
+\section{Problem\'atica}
+
+La diabetes mellitus constituye una de las principales enfermedades cr\'onicas no transmisibles con mayor impacto en la salud p\'ublica a nivel mundial. De acuerdo con la \textit{International Diabetes Federation} (IDF), aproximadamente el 11.1\% de la poblaci\'on adulta entre 20 y 79 a\~nos padece esta enfermedad, lo que equivale a cerca de uno de cada nueve adultos. Adem\'as, se estima que m\'as del 40\% de las personas que viven con diabetes no han sido diagnosticadas, lo que evidencia la magnitud del problema y la necesidad de fortalecer los mecanismos de detecci\'on temprana. Asimismo, las proyecciones indican que para el a\~no 2050 cerca de 853 millones de personas podr\'ian vivir con esta condici\'on si no se implementan estrategias efectivas de prevenci\'on y diagn\'ostico oportuno (IDF,2025).
+
+En el contexto nacional, la diabetes representa uno de los principales problemas de salud p\'ublica. Seg\'un el \textit{ Instituto Nacional de Estad\'istica y Geograf\'ia} (INEGI), aproximadamente el 10.3\% de los adultos mexicanos han sido diagnosticados con esta enfermedad. Adem\'as, en el a\~no 2020 se registraron m\'as de un mill\'on de defunciones en el pa\'is, de las cuales el 14\% estuvieron relacionadas con la diabetes, reflejando su impacto significativo en la mortalidad (INEGI, 2021).
+
+Del total de fallecimientos por esta causa, el 52\% ocurrieron en hombres y el 48\% en mujeres. Asimismo, el 98\% de las defunciones se asociaron con diabetes no insulinodependiente y otros tipos, mientras que el 2\% correspondieron a diabetes insulinodependiente. Estos datos resaltan la importancia de fortalecer las estrategias de prevenci\'on, diagn\'ostico y tratamiento oportuno.
+
+A nivel estatal, entidades como Tlaxcala presentan tasas elevadas de mortalidad, lo que evidencia la necesidad de implementar acciones m\'as eficaces para el control de la enfermedad. Uno de los principales retos en su manejo es la detecci\'on tard\'ia, ya que en muchos casos el diagn\'ostico ocurre cuando el paciente ya presenta complicaciones como enfermedades cardiovasculares, da\~no renal, neuropat\'ias o problemas visuales.
+
+Ante esta situaci\'on, el uso de tecnolog\'ias basadas en inteligencia artificial ha mostrado un alto potencial para el an\'alisis de datos cl\'inicos y la identificaci\'on de patrones que permitan detectar la enfermedad en etapas tempranas. Sin embargo, la mayor\'ia de los modelos actuales se enfocan en un solo tipo de diabetes, lo que genera una fragmentaci\'on en los sistemas de diagn\'ostico automatizado.
+
+En M\'exico, los principales tipos diagnosticados son la diabetes tipo 1, tipo 2 y la gestacional. No obstante, los modelos de predicci\'on suelen dise\~narse para detectar cada tipo de manera independiente, lo que limita su capacidad para apoyar procesos de diagn\'ostico m\'as integrales.
+
+En este contexto, resulta fundamental desarrollar herramientas tecnol\'ogicas que integren el an\'alisis de los distintos tipos de diabetes dentro de un mismo sistema predictivo. Esto permitir\'ia mejorar la detecci\'on temprana, reducir complicaciones y fortalecer la toma de decisiones m\'edicas.
+
+Por lo tanto, surge la siguiente pregunta de investigaci\'on:
+
+\begin{quote}
+	\textquestiondown Puede un sistema basado en redes neuronales predecir de manera integrada los tres tipos principales de diabetes con mayor precisi\'on que modelos independientes, utilizando datos cl\'inicos de pacientes mexicanos durante el periodo 2020--2026?
+\end{quote}
+
+
+\section{Objetivo General}
+
+Desarrollar e implementar un sistema basado en redes neuronales que permita identificar con precisi\'on el tipo de diabetes con mayor probabilidad de desarrollarse en un paciente (tipo 1, tipo 2 o gestacional), minimizando la tasa de falsos positivos y comparando su desempe\~no con modelos individuales previamente existentes.
+
+
+\section{Objetivos Espec\'ificos}
+
+\begin{enumerate}
+	
+	\item Obtener un conjunto de datos cl\'inicos proveniente de un hospital del municipio, conformando una base de datos con un m\'inimo de 1000 registros de pacientes, clasificados en cuatro categor\'ias: diabetes tipo 1, diabetes tipo 2, diabetes gestacional y pacientes sanos, estableciendo los criterios de selecci\'on y depuraci\'on de los datos.
+	
+	\item Analizar y seleccionar las variables cl\'inicas y antecedentes familiares con mayor poder predictivo mediante an\'alisis estad\'istico descriptivo e inferencial, considerando un nivel de significancia de $p < 0.05$.
+	
+	\item Dise\~nar una red neuronal artificial multiclase que genere probabilidades asociadas a cada tipo de diabetes y determine como resultado final la categor\'ia con mayor probabilidad estimada.
+	
+	\item Entrenar el modelo utilizando validaci\'on cruzada y ajustar los hiperpar\'ametros hasta alcanzar una exactitud igual o superior al 85\% en la clasificaci\'on correcta de los pacientes.
+	
+	\item Minimizar la tasa de falsos positivos y falsos negativos mediante la optimizaci\'on de la funci\'on de p\'erdida y el ajuste del umbral de decisi\'on.
+	
+	\item Evaluar el desempe\~no del sistema utilizando m\'etricas cuantificables como exactitud global, exactitud por clase, sensibilidad, especificidad, F1-score y matriz de confusi\'on multiclase.
+	
+	\item Comparar estad\'isticamente el modelo integral propuesto con modelos individuales dise\~nados para cada tipo de diabetes, analizando diferencias significativas en exactitud y tasa de error de clasificaci\'on.
+	
+\end{enumerate}
+
+\section{Justificaci\'on}
+
+La diabetes constituye una de las enfermedades cr\'onicas de mayor impacto en el sistema de salud mexicano. Seg\'un datos del INEGI, alrededor del 10.3\% de la poblaci\'on adulta padece esta enfermedad, lo que representa millones de personas que requieren atenci\'on m\'edica continua. Esta situaci\'on evidencia la necesidad de desarrollar herramientas tecnol\'ogicas que fortalezcan la detecci\'on oportuna y contribuyan a disminuir la carga sobre los servicios de salud.
+
+En los \'ultimos a\~nos, la inteligencia artificial ha adquirido un papel relevante en el \'ambito m\'edico, al permitir el an\'alisis de grandes vol\'umenes de informaci\'on cl\'inica, la identificaci\'on de patrones y la mejora en la precisi\'on de los diagn\'osticos. Adem\'as, estas tecnolog\'ias contribuyen a reducir errores m\'edicos, optimizar la gesti\'on de la informaci\'on y facilitar la toma de decisiones, especialmente en entornos con recursos limitados.
+
+Sin embargo, los sistemas actuales de detecci\'on de diabetes basados en redes neuronales presentan una limitaci\'on importante: su enfoque fragmentado hacia un solo tipo de diabetes. Este vac\'io limita su aplicaci\'on en escenarios reales, donde es necesario considerar la complejidad de la enfermedad.
+
+Por ello, el desarrollo de un sistema predictivo integral permitir\'a mejorar los procesos de prevenci\'on y detecci\'on temprana, favoreciendo intervenciones oportunas antes de la aparici\'on de complicaciones. Esto podr\'ia traducirse en una reducci\'on de diagn\'osticos tard\'ios, complicaciones asociadas y costos m\'edicos, beneficiando tanto a los pacientes como a las instituciones de salud.
+
+Asimismo, la propuesta es viable debido a la disponibilidad de datos cl\'inicos, el acceso a t\'ecnicas consolidadas en redes neuronales y los recursos computacionales actuales. Desde el punto de vista metodol\'ogico, la investigaci\'on aporta un enfoque innovador al integrar m\'ultiples tipos de diabetes en un solo modelo predictivo, lo que fortalece su aplicaci\'on y contribuye al avance del conocimiento en el campo de la inteligencia artificial aplicada a la salud.
+
+
+\section{Hip\'otesis}
+
+Existen diferencias estad\'isticamente significativas en la exactitud y la tasa de falsos positivos entre el modelo integral basado en redes neuronales y los modelos individuales previamente desarrollados, siendo el modelo integral superior en la identificaci\'on correcta del tipo de diabetes con mayor riesgo, con un nivel de significancia de 0.05.
+
+
+
+
+\section{Limitaciones}
+
+El estudio se limita al an\'alisis de datos cl\'inicos de pacientes del municipio de Calpulalpan, por lo que los resultados no necesariamente son generalizables a otras regiones. La muestra m\'inima de 1000 registros puede influir en la representatividad del modelo. El sistema ser\'a integrado como herramienta de apoyo al diagn\'ostico en un entorno cl\'inico, sin sustituir el juicio m\'edico ni operar de forma aut\'onoma en la toma de decisiones. La investigaci\'on se restringe al periodo 2020--2026 y no considera la incorporaci\'on de datos futuros. No se realizar\'a la recolecci\'on manual de datos, ya que se trabajar\'a exclusivamente con bases de datos existentes. La comparaci\'on con otros trabajos ser\'a de car\'acter referencial, debido a diferencias en los conjuntos de datos y condiciones experimentales. Asimismo, aunque se considerar\'an aspectos legales y \'eticos relacionados con el uso de datos cl\'inicos, no se llevar\'a a cabo un an\'alisis jur\'idico o normativo exhaustivo.
+
+
+\section{Metodolog\'ia}
+
+\begin{itemize}
+    \item \textbf{Tipo de investigaci\'on:} Aplicada, experimental y tecnol\'ogica.
+    
+    \item \textbf{M\'etodo:} Dise\~no, desarrollo e implementaci\'on de un prototipo de sistema inteligente basado en redes neuronales artificiales para la detecci\'on integrada de diabetes tipo 1, tipo 2 y gestacional.
+    
+    \item \textbf{Etapas:}
+    
+    \begin{enumerate}
+        \item \textbf{Recolecci\'on de datos cl\'inicos y antecedentes familiares}
+        \begin{itemize}
+            \item Obtenci\'on de registros m\'edicos y variables relevantes como edad, sexo, \'indice de masa corporal, niveles de glucosa, hemoglobina glicosilada (HbA1c), presi\'on arterial y antecedentes familiares de diabetes.
+        \end{itemize}
+        
+        \item \textbf{An\'alisis y preprocesamiento de datos}
+        \begin{itemize}
+            \item Limpieza, normalizaci\'on y selecci\'on de variables m\'as relevantes mediante an\'alisis estad\'istico descriptivo para mejorar el rendimiento del sistema.
+        \end{itemize}
+        
+        \item \textbf{Entrenamiento del modelo de red neuronal}
+        \begin{itemize}
+          \item Desarrollo y entrenamiento del algoritmo de aprendizaje autom\'atico utilizando el conjunto de datos recopilado para clasificar los tres tipos de diabetes.
+        \end{itemize}
+        
+        \item \textbf{Implementaci\'on del sistema predictivo}
+        \begin{itemize}
+            \item Integraci\'on del modelo entrenado en un sistema computacional que permita ingresar datos cl\'inicos y obtener una predicci\'on del tipo de diabetes.
+        \end{itemize}
+        
+        \item \textbf{Evaluaci\'on del desempe\~no del sistema}
+        \begin{itemize}
+            \item An\'alisis del rendimiento mediante m\'etricas como exactitud, sensibilidad, especificidad y matriz de confusi\'on.
+        \end{itemize}
+        
+        \item \textbf{Comparaci\'on con modelos existentes fragmentados}
+        \begin{itemize}
+            \item Evaluaci\'on comparativa del sistema propuesto frente a modelos previamente desarrollados que detectan \'unicamente un tipo de diabetes (tipo 1, tipo 2 o gestacional), utilizando las mismas m\'etricas de desempe\~no. Esta comparaci\'on permitir\'a determinar si la detecci\'on integrada mejora la precisi\'on y eficiencia respecto a los enfoques individuales.
+        \end{itemize}
+        
+    \end{enumerate}
+\end{itemize}
+\renewcommand{\arraystretch}{1.3}

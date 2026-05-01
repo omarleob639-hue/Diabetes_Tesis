@@ -1,0 +1,27 @@
+# Entornos virtuales
+Tesis_env/
+venv/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# LaTeX (archivos temporales)
+*.aux
+*.log
+*.toc
+*.out
+*.pdf
+*.synctex.gz
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.maf
+*.mtc*
+*.lof
+*.lot
+*.loa
+*.thm

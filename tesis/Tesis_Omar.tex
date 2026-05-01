@@ -1,0 +1,234 @@
+\documentclass[12pt]{book}
+\usepackage[tema1]{Estilo_Alvaro} %Versi髇 corregida 10/agosto/2017.
+\usepackage{amssymb}
+\renewcommand{\baselinestretch }{1.2}
+\usepackage{graphicx}
+\usepackage{minitoc}
+\usepackage[spanish]{babel}
+%\selectlanguage{spanish}
+\usepackage[latin1]{inputenc}
+\inputencoding{latin1}
+\spanishdecimal{.}
+\usepackage{float}
+\usepackage{rotating}
+%\frenchbsetup{StandardLists=true}
+%\usepackage{enumerate} % para tablas largas
+\usepackage{multirow}
+\usepackage{multicol} % Used for the two-column layout of the document
+\usepackage{tabulary}
+\usepackage{booktabs} %brinda una serie de alternativas para cambiar el aspectoe las l韓eas horizontales en las tablas.
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+%\usepackage[dvipsnames]{xcolor}
+\usepackage{appendix}
+%\usepackage[table]{xcolor}
+\usepackage{colortbl}
+\usepackage{hhline}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{supertabular,booktabs}
+\arrayrulecolor{black}
+%\usepackage{enumerate}
+\newcommand{\minitab}[2][l]{\begin{tabular}{#1}#2\end{tabular}}
+%\setcounter{chapter}{0}
+\newlength\marincrease
+
+\makeatletter
+\newenvironment{Alvaro}[2][htbp]
+{\renewcommand{\@algocf@start}{%
+		\setlength\marincrease{#2}
+		\@algoskip%
+		\begin{lrbox}{\algocf@algobox}%
+			\begin{minipage}{\dimexpr\textwidth+2\marincrease\relax}
+				\setlength{\algowidth}{\hsize}%
+				\vbox\bgroup% save all the algo in a box
+				\hbox to\algowidth\bgroup\hbox to \algomargin{\hfill}\vtop\bgroup%
+				\ifthenelse{\boolean{algocf@slide}}{\parskip 0.5ex\color{black}}{}%
+				% initialization
+				\addtolength{\hsize}{-1.5\algomargin}%
+				\let\@mathsemicolon=\;\def\;{\ifmmode\@mathsemicolon\else\@endalgoln\fi}%
+				\raggedright\AlFnt{}%
+				\ifthenelse{\boolean{algocf@slide}}{\IncMargin{\skipalgocfslide}}{}%
+				\@algoinsideskip%
+				%   \let\@emathdisplay=\]\def\]{\algocf@endline\@emathdisplay\nl}%
+			}%
+			\renewcommand{\@algocf@finish}{%
+				\@algoinsideskip%
+				\egroup%end of vtop which contain all the text
+				\hfill\egroup%end of hbox wich contains [margin][vtop]
+				\ifthenelse{\boolean{algocf@slide}}{\DecMargin{\skipalgocfslide}}{}%
+				%
+				\egroup%end of main vbox
+			\end{minipage}
+		\end{lrbox}%
+		\makebox[\linewidth][c]{\algocf@makethealgo}% print the algo
+		\@algoskip%
+		% restore dimension and macros
+		\setlength{\hsize}{\algowidth}%
+		\lineskip\normallineskip\setlength{\skiptotal}{\@defaultskiptotal}%
+		\let\;=\@mathsemicolon%  
+		\let\]=\@emathdisplay%
+	}%
+	\begin{algorithm}[#1]}
+	{\end{algorithm}}
+\makeatother
+
+% % % % % % % % %Fin Tama帽o Algoritmos % % % % % % % % % %
+\newcommand\overmat[2]{%
+	\makebox[0pt][l]{$\smash{\color{white}\overbrace{\phantom{%
+					\begin{matrix}#2\end{matrix}}}^{\text{\color{black}#1}}}$}#2}
+
+
+
+%\newcommand{\minitab}[2][r]{\begin{tabular}{#1}#2\end{tabular}}
+
+%Cosas adicionales-----------------------------------------------------------
+%Comandos--------------------------------------------------------------------
+%\input{miscomandos} %si tiene un archivo de comandos
+\newcommand{\be}{\begin{enumerate}}
+	\newcommand{\ee}{\end{enumerate}}
+\newcommand{\wn}[1]{\textbf{\texttt{#1}}} %negrita \tt
+%\newcommand{\sen}{\mathop{\rm sen}\nolimits}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\usepackage{listings}
+% Puede usar lstlisting|texto| para c贸digo en el texto
+\lstset{ %
+	language={[LaTeX]TeX}, %Pascal % lenguaje de programaci贸n
+	basicstyle=\bfseries\ttfamily,
+	keywordstyle=\color{blue},
+	commentstyle=\color{brown},	
+	backgroundcolor=\color{gray!15},
+	showstringspaces=false
+}
+%Comando para listas con bolas	
+%\newcommand{\beaz}{\begin{enumerate}[label=\itembolasazules{\arabic*}]}
+%\newcommand{\eeaz}{\end{enumerate}}
+
+% Cosas de Estilo-------------------------------------------------------------
+% Colores para caja del entorno  "miejemplo"
+\definecolor{color1}{RGB}{44,42,37}      % borde general
+\definecolor{color2}{RGB}{240,240,240}   % fondo del cuerpo
+\definecolor{color3}{RGB}{44,42,37}      % fondo del  encabezado
+\definecolor{color4}{RGB}{240,240,240}   % borde del encabezado
+%Caja para mi "mejemplo"
+%Uso: \begin{miejemplo} .... \end{miejemplo}
+%\nuevoboiejemplo{miejemplo}{\white Ejemplo}{color1}{color2}{color3}{color4}
+% Iluminar c贸digo de programas:----------------------------------------------
+% minted y Verbments requieren Python, Pygments y minted.sty.
+% Ver secci贸n 9.8
+%\usepackage{minted}
+%\usemintedstyle{vs}
+%En este documento usamos 'listings' que no necesita algo adicional.
+%---------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%% Estilo Tabla de contenido%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage{kpfonts}
+%\usepackage[tmargin=2cm,rmargin=3.8cm,lmargin=3.8cm,bmargin=2cm]{geometry}
+%\usepackage{tikz}
+%\definecolor{doc}{RGB}{0,80,110}
+%\usepackage{titletoc}
+%\contentsmargin{0cm}
+%\titlecontents{chapter}[2.4pc]
+%{\addvspace{30pt}%
+%	\begin{tikzpicture}[remember picture, overlay]%
+%	\draw[fill=doc!30,draw=doc!30] (-2,-0.3) rectangle (-0.2,0.7);%
+%	\pgftext[left,x=-1cm,y=0.2cm]{\color{white}\Huge\bfseries  \thecontentslabel};%
+%	\end{tikzpicture}\color{doc!40}\large\sc\bfseries}%
+%{}
+%{}
+%{\;\titlerule\;\large\bfseries  \thecontentspage
+%%	\begin{tikzpicture}[remember picture, overlay]
+%%	\draw[fill=doc!25,draw=doc!20] (0pt,0) rectangle (0,0pt);
+%%	\end{tikzpicture}
+%}%
+%\titlecontents{section}[4.9pc]
+%{\addvspace{1pt}}
+%{\contentslabel[\thecontentslabel]{4.9pc}}
+%{}
+%{\hfill\small \thecontentspage}
+%[]
+%\titlecontents*{subsection}[4pc]
+%{\addvspace{-1pt}\small}
+%{}
+%{}
+%{\ --- \small\thecontentspage}
+%[ \textbullet\ ][]
+%
+%\makeatletter
+%\renewcommand{\tableofcontents}{%
+%	\chapter*{%
+%		\vspace*{-20\p@}%
+%		\begin{tikzpicture}[remember picture, overlay]%
+%		\pgftext[right,x=15cm,y=0.2cm]{\color{doc!30}\Huge\sc\bfseries \contentsname};%
+%		\draw[fill=doc!30,draw=doc!30] (11.8,-.75) rectangle (20,1);%
+%		\clip (11.8,-.75) rectangle (20,1);
+%		\pgftext[right,x=15cm,y=0.2cm]{\color{white}\Huge\sc\bfseries \contentsname};%
+%		\end{tikzpicture}}%
+%	\@starttoc{toc}}
+%\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%
+% Estilo del nuevo float.
+% Derivado de komaabove de KOMA-script
+\setlength{\parskip}{2ex}
+\begin{document}
+	\renewcommand{\tablename}{Tabla}
+	\def\listtablename{\'Indice de tablas}
+	\SetAlgorithmName{Algoritmo}{Alg}{\'Indice de Algoritmos}
+	\title{Sistema inteligente de apoyo al diagn\'ostico oportuno de diabetes mediante an\'alisis integral de datos cl\'inicos y antecedentes familiares}
+	\author{Omar Le\'on Montiel}
+	\directoruno{Alvaro S\'anchez M\'arquez}
+	\fecha{Diciembre 2027}
+	% Nombre de Comit茅 de Revision
+	\primerrevisor{Revisor1}
+	\segundorevisor{Revisor2}
+	\tercerrevisor{Revisor3}
+	\dedicatoria{Agradezco a \textbf{Dios} por su amor, gracia y misericordia para conmigo, aqu\'{\i}, ahora y siempre.\\
+		\vspace{0.7cm}
+	{\large \textbf{Muchas Gracias}}}	
+	%\pagenumbering{Roman}
+	\pagenumbering{roman}
+	%  \renewcommand{\thepage}{\roman{page}}
+	%  \setcounter{page}{1}
+\maketitle
+	%\dominitoc %pone contenido en cada capitulo (habilitar minitoc en cada capitulo )
+	\tableofcontents
+	\addtocontents{toc}{~\hfill\textbf{P\'agina}\par}
+    
+	\listoffigures
+	\addcontentsline{toc}{chapter}{\'Indice de Figuras}
+	\listoftables
+	\addcontentsline{toc}{chapter}{\'Indice de Tablas}
+	\listofalgorithms % 脥ndice de algoritmos creados con algortihm2e
+	\addcontentsline{toc}{chapter}{\'Indice de Algoritmos} % A帽ade la lista de algoritmos al TOC.
+	\include{Resumen}
+	
+		\renewcommand{\thepage}{\arabic{page}}
+		
+	\setcounter{page}{1}
+	%\include{Introduccion}
+	\input{Capitulo1}
+	\input{Capitulo2}
+    %\input{Capitulo3}
+%	\input{Capitulo4}
+%	\input{Capitulo5}
+%	\input{Capitulo6}
+%\appendix
+ %   \input{APENDICE}
+
+	
+	
+	\bibliographystyle{apalike} %aqui hay un estilo de bibliograf铆a
+	\addcontentsline{toc}{chapter}{Bibliografia}
+	\bibliography{Bibliografia}
+	\appendix
+%	\include{Apendice}
+	
+	
+\end{document}
+
+
