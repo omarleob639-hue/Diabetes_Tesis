@@ -1,10 +1,16 @@
 # Sistema de Predicción de Diabetes — Contexto del Proyecto
 
+> **Actualizado:** 5 de octubre de 2026 · commit `cee87d2` desplegado en Vercel
+
 ## ¿Qué es?
 Sistema web para la detección temprana de diabetes mellitus desarrollado
 como tesis de licenciatura. Predice de manera integrada el tipo de diabetes
 con mayor probabilidad en un paciente: tipo 1, tipo 2, gestacional o sano,
 utilizando una red neuronal artificial multiclase.
+
+**Estado crítico:** la interfaz está publicada, pero la red neuronal **no está
+entrenada**. El sistema opera con datos de demostración y lo declara en
+pantalla. Ninguna predicción mostrada es un resultado real del modelo.
 
 ---
 
@@ -45,10 +51,11 @@ siendo el modelo integral superior (nivel de significancia: 0.05).
 ## Stack tecnológico
 | Capa | Tecnología | Rol |
 |---|---|---|
-| Interfaz | React 19 + Vite | Formulario de entrada y visualización de resultados |
-| Estilos | Tailwind CSS v4 | Utilidades CSS, sin estilos inline |
-| Hosting frontend | Vercel | Deploy automático desde GitHub |
-| API | FastAPI + Pydantic v2 | Endpoints REST para predicción y gestión de pacientes |
+| Interfaz | React 19 + Vite | 5 vistas enrutadas con React Router |
+| Enrutado | react-router-dom | Navegación cliente, 5 rutas |
+| Estilos | Tailwind CSS v4 | Tokens de diseño vía `@theme`, sin CSS inline |
+| Hosting frontend | Vercel | **Desplegado** en el proyecto `Universidad` |
+| API | FastAPI + Pydantic v2 | Endpoints REST para predicción y pacientes |
 | Driver PostgreSQL | psycopg 3 | Acceso a la base de datos |
 | ORM | SQLAlchemy 2.0 | Mapeo de las tablas `patients` y `predictions` |
 | Serverless | AWS Lambda | Pendiente de decisión (ver abajo) |
@@ -58,6 +65,35 @@ siendo el modelo integral superior (nivel de significancia: 0.05).
 | BaaS | Supabase | Autenticación, API REST y panel de administración |
 | Experimentación | Jupyter Notebook | Exploración, entrenamiento y evaluación (bloqueado) |
 | Versiones | GitHub | Control de versiones y CI/CD |
+
+---
+
+## Rutas de la interfaz
+| Ruta | Vista | Propósito |
+|---|---|---|
+| `/` | `Inicio` | Portada del proyecto y Presentación institucional |
+| `/nueva-prediccion` | `NuevaPrediccion` | Formulario de las 8 variables clínicas |
+| `/resultados` | `Resultados` | Clase más probable y desglose de probabilidades |
+| `/pacientes` | `Pacientes` | Listado con búsqueda |
+| `/historial` | `Historial` | Historial con filtros |
+
+`vercel.json` declara `rewrites` con `/(.*) -> /index.html`. Sin esto,
+recargar `/historial` devolvería 404 porque React Router vive en cliente.
+
+---
+
+## Identidad visual
+Paleta de carácter institucional, definida como tokens en `index.css`:
+
+| Token | Hex | Uso |
+|---|---|---|
+| Guinda | `#611232` / `#9D2449` | Encabezado, acentos, franja |
+| Dorado | `#A57F2C` / `#B38E5D` | Botones primarios |
+| Verde | `#235B4E` | Estado saudável, confirmación |
+| Fondo | `#F1F4F8` | Superficies |
+| Texto | `#1F2937` | Texto principal |
+
+Tipografías: `Montserrat` para títulos y cifras, `Noto Sans` para cuerpo.
 
 ---
 
@@ -83,7 +119,27 @@ preprocesamiento y el orden de las variables.
 5. La red neuronal genera probabilidades para las 4 clases
 6. FastAPI persiste paciente y predicción en una sola transacción y devuelve
    el tipo con mayor probabilidad junto con las 4 probabilidades
-7. React muestra el resultado en `components/ResultCard.jsx`
+7. React muestra el resultado en `pages/Resultados.jsx`
+
+### Fallback automático a modo demostración
+`services/datos.js` es la única capa que consume datos. Intenta primero la
+API real y, si falla, degrada al mock **declarándolo en pantalla**:
+
+```
+pages/* -> services/datos.js -> services/api.js  (VITE_API_BASE_URL)
+                              -> services/mock.js (demo, sin backend)
+```
+
+Consecuencia práctica: cuando el backend esté desplegado, **no hay que tocar
+ningún componente**. La detección es automática.
+
+Variables de entorno del frontend (Vite solo expone prefijos `VITE_`):
+| Variable | Valor local | Nota |
+|---|---|---|
+| `VITE_API_BASE_URL` | `http://localhost:8000` | Única variable soportada |
+
+`VITE_API_URL` **no funciona**: `api.js` lee `VITE_API_BASE_URL`. Estas
+variables son públicas por diseño; nunca deben contener secretos.
 
 ---
 
@@ -124,10 +180,21 @@ diabetes-predictor/
 │   ├── raw/                    Dataset original (bloqueado)
 │   └── processed/              Dataset limpio (bloqueado)
 └── frontend/
-    ├── src/components/         FormularioPaciente, ResultCard
-    ├── src/services/           Cliente HTTP de la API
-    └── src/App.jsx             Composición de la vista
+    ├── src/
+    │   ├── components/         Header, Card, Field, ProbabilityBar
+    │   ├── pages/              Inicio, NuevaPrediccion, Resultados,
+    │   │                       Pacientes, Historial
+    │   ├── services/           api.js, mock.js, datos.js (capa única)
+    │   ├── constants/          clinico.js (paleta, clases, variables)
+    │   ├── context/            prediccion.js, ProveedorPrediccion.jsx
+    │   ├── App.jsx             Rutas
+    │   └── main.jsx            BrowserRouter
+    ├── vercel.json             Build Vite + rewrites SPA
+    └── .env.example            Documenta VITE_API_BASE_URL
 ```
+
+Los componentes antiguos `FormularioPaciente.jsx` y `ResultCard.jsx` se
+eliminaron al migrar a vistas enrutadas con contexto compartido.
 
 ---
 
@@ -152,6 +219,10 @@ diabetes-predictor/
 - Estilos con Tailwind, nunca CSS inline
 - Endpoints REST: sustantivos en plural, sin verbos
 - Migraciones nunca se editan después de aplicadas; se agrega una nueva
+- En Tailwind v4, `@utility` **no** acepta pseudo-selectores:
+  se escribe `&:hover` dentro del bloque, nunca `@utility x:hover`
+- Node 22 declarado en `package.json`; Vercel usa esa versión
+- Los cambios de tesis viven fuera de los commits del sistema
 
 ---
 
@@ -174,13 +245,13 @@ npm run dev
 ---
 
 ## Orden de desarrollo
-1. Base de datos (PostgreSQL + Supabase) — hecho
-2. Backend (FastAPI + contratos) — hecho
-3. Frontend (React + Tailwind) — hecho
+1. Base de datos (PostgreSQL + Supabase) — **hecho**
+2. Backend (FastAPI + contratos) — **hecho**
+3. Frontend (React + Tailwind + React Router) — **hecho y desplegado**
 4. Modelo ML (Jupyter → TensorFlow + Scikit-learn) — **bloqueado**
 5. Integración del modelo en `model_service.py` — **bloqueado**
-6. Despliegue (Vercel + AWS Lambda) — bloqueado por decisión de arquitectura
-7. Evaluación y comparación estadística — bloqueado
+6. Despliegue del backend (AWS Lambda) — **pendiente**
+7. Evaluación y comparación estadística — **bloqueado**
 
 ---
 
@@ -190,14 +261,73 @@ Implementado y verificado:
   suma de probabilidades, índices y triggers de `updated_at`.
 - API con 9 endpoints, validación Pydantic y 10 pruebas de humo que pasan.
 - Interfaz React con Tailwind que compila y pasa el linter.
+- Las 5 rutas responden 200 y los 17 módulos del grafo de imports compilan.
+- Build en 505 ms; bundle de 285 kB (89 kB gzip).
+- Desplegado en Vercel, proyecto `Universidad`.
 
-Pendiente de decisión del asesor (bloquea el resto):
-- Fuente de los datos de entrenamiento.
-- Ubicación del modelo: AWS Lambda o dentro del backend.
+---
+
+## Lo que falta
+### 1. Frontend — listo, sin bloqueos
+Nada pendiente. Un detalle de copy: `Inicio` afirma que el modelo fue
+entrenado con datos de Calpulalpan, Tlaxcala. **Esa afirmación no está
+respaldada todavía** por ningún dataset. Mantener solo si se confirma, o
+reescribir como demostración.
+
+### 2. Backend — bloqueado en Vercel
+`VITE_API_BASE_URL=http://localhost:8000` no existe desde Vercel, por eso
+aparece *Failed to fetch*. Mientras tanto el sistema cae al mock.
+
+Opciones para el backend, sin decisión tomada:
+| Opción | A favor | En contra |
+|---|---|---|
+| AWS Lambda + Lambda Web Adapter | Barato si casi no hay tráfico | Cold starts (~2-4 s con ONNX) |
+| AWS App Runner / ECS | Sin cold starts, contenedor nativo | Costo por Always-On |
+| Mantener local | Costo cero | No es público |
+
+Recomendación previa: **exportar el modelo a ONNX y servirlo en Lambda**.
+Reduce el tamaño y el arranque respecto a TensorFlow crudo.
+
+### 3. Modelo ML — bloqueado por datos
+**Este es el cuello de botella real.** El filtro de candidatos está en
+`FILTRO_DATASETS.md`. Resumen de lo revisado:
+
+| Candidato | Problema |
+|---|---|
+| Pima Indians | Aporta `sano` (500) y `tipo_2` (268); no DM1 ni gestacional |
+| GDM India (Cho et al.) | **Solo casos GDM.** Sin controles, sin sensores, mezcla DM1/DM2 |
+| T1DiabetesGranada | El más cercano a DM1. Requiere permiso manual; **no descargado** |
+| Prontuario Brasil (DM1/2) | Acceso restringido, mezcla DM1 y DM2 |
+| PMC9954149 | **No usar**: sus clases GDM fueron fabricadas |
+
+Reglas acordadas:
+- **Nunca fabricar una clase completa con IA.** Se puede sintetizar una
+  clase minoritaria para balancear, pero debe documentarse.
+- Sin DM1 real, la clasificación tetraclásica **no es defendible**. Una
+  opción metodológica más sólida sería triclásica (`sano`/`prediabetes`/
+  `diabetes`) mientras no exista DM1.
+- Mezclar datasets crea *confounding* de población y de fuente de medición.
+  Solo 3 variables son comparables entre Pima y el set gestacional.
+
+### 4. Base de datos — sin validar en producción
+Migraciones escritas pero **nunca aplicadas** a Supabase: no hay Docker ni
+`psql` en el entorno.
+
+### 5. CI — no verificado
+El workflow existe en `.github/workflows/test.yml` pero **no se ha corrido**:
+`gh` no está instalado. Antes del commit se verificó localmente (10 pruebas
+backend, Ruff, lint y build frontend).
+
+### 6. Housekeeping
+Hay una **copia obsoleta del proyecto** en
+`Desktop\omar\omar\Titulación\diabetes-predictor\frontend` (scaffold de
+agosto, Tailwind 3, sin `vercel.json`). No contiene nada del diseño actual.
+No borrar sin revisar antes: podría tener trabajo propio.
 
 ---
 
 ## Limitaciones
+- El modelo no está entrenado: hoy el sistema **no predice**, simula.
 - Los datos son de pacientes del municipio de Calpulalpan, Tlaxcala
 - Muestra mínima de 1000 registros
 - El sistema es herramienta de apoyo al diagnóstico, no reemplaza al médico
