@@ -1,6 +1,7 @@
 # Entornos virtuales
 Tesis_env/
 venv/
+.venv/
 env/
 .env
 .env.*
@@ -40,7 +41,9 @@ dist/
 out/
 
 # Database (PostgreSQL, Supabase)
-*.sql
+# Las migraciones y seeds SI se versionan; solo se descartan los vuelcos de base de datos
+*.dump
+*.backup
 supabase/.temp/
 
 # AWS Lambda
@@ -50,6 +53,13 @@ supabase/.temp/
 .gemini/
 antigravity/
 .claudecode/
+
+# Grabaciones y multimedia de tesis
+# GitHub rechaza de forma dura cualquier archivo mayor a 100 MB, y las
+# grabaciones de las entrevistas pesan entre 150 y 530 MB cada una.
+*.mp4
+*.crswap
+*.lol
 
 # LaTeX (archivos temporales)
 *.aux
@@ -76,4 +86,5 @@ diabetes-predictor/data/*.xlsx
 diabetes-predictor/data/*.json
 diabetes-predictor/data/raw/*
 diabetes-predictor/data/processed/*
-!diabetes-predictor/data/.gitkeep
+# Los .gitkeep sí se versionan para que GitHub muestre la estructura de carpetas
+!diabetes-predictor/data/**/.gitkeep
