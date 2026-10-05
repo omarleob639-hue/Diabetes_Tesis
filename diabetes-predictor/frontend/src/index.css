@@ -1,1 +1,90 @@
 @import 'tailwindcss';
+
+@theme {
+  /* Paleta institucional */
+  --color-guinda: #611232;
+  --color-guinda-medio: #7a1b3d;
+  --color-guinda-claro: #9d2449;
+  --color-dorado: #a57f2c;
+  --color-dorado-claro: #b38e5d;
+  --color-verde: #235b4e;
+  --color-fondo: #f1f4f8;
+  --color-texto: #1f2937;
+  --color-borde: #d7dee8;
+
+  /* Semáforo de las cuatro clases */
+  --color-clase-t1: #b3261e;
+  --color-clase-t2: #a57f2c;
+  --color-clase-gest: #9d2449;
+  --color-clase-sano: #235b4e;
+
+  --font-titulo: 'Montserrat', system-ui, sans-serif;
+  --font-cuerpo: 'Noto Sans', system-ui, sans-serif;
+
+  --radius-tarjeta: 14px;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    font-family: var(--font-cuerpo);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-titulo);
+    color: var(--color-guinda);
+    letter-spacing: -0.01em;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-dorado);
+    outline-offset: 2px;
+  }
+}
+
+@utility franja {
+  display: flex;
+  height: 4px;
+}
+
+@utility btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 10px;
+  padding: 0.625rem 1.25rem;
+  font-family: var(--font-titulo);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+}
+
+@utility btn-dorado {
+  background-color: var(--color-dorado);
+  color: #2b1d05;
+  border: 1px solid var(--color-dorado);
+
+  &:hover {
+    background-color: var(--color-dorado-claro);
+  }
+}
+
+@utility btn-contorno {
+  background-color: transparent;
+  color: var(--color-guinda);
+  border: 1px solid var(--color-guinda-claro);
+
+  &:hover {
+    background-color: #fdf2f6;
+  }
+}

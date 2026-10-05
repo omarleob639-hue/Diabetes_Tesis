@@ -1,58 +1,42 @@
-import { useState } from 'react'
+import { Route, Routes } from 'react-router-dom'
 
-import FormularioPaciente from './components/FormularioPaciente'
-import ResultCard from './components/ResultCard'
-import { crearPrediccion } from './services/api'
+import Header from './components/Header'
+import { ProveedorPrediccion } from './context/ProveedorPrediccion'
+import Historial from './pages/Historial'
+import Inicio from './pages/Inicio'
+import NuevaPrediccion from './pages/NuevaPrediccion'
+import Pacientes from './pages/Pacientes'
+import Resultados from './pages/Resultados'
 
 export default function App() {
-  const [prediccion, setPrediccion] = useState(null)
-  const [cargando, setCargando] = useState(false)
-  const [error, setError] = useState(null)
-
-  async function manejarEnvio(datos) {
-    setCargando(true)
-    setError(null)
-
-    const numericos = ['edad', 'imc', 'glucosa_ayuno', 'presion_sistolica', 'presion_diastolica']
-
-    const cuerpo = Object.fromEntries(
-      Object.entries(datos).map(([campo, valor]) => [
-        campo,
-        numericos.includes(campo) || campo === 'hba1c'
-          ? valor === ''
-            ? null
-            : Number(valor)
-          : valor,
-      ]),
-    )
-
-    try {
-      setPrediccion(await crearPrediccion(cuerpo))
-    } catch (fallo) {
-      setError(fallo.message)
-      setPrediccion(null)
-    } finally {
-      setCargando(false)
-    }
-  }
-
   return (
-    <main className="min-h-screen bg-slate-50 py-10">
-      <div className="mx-auto max-w-3xl px-4">
-        <header className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Detección de Diabetes
-          </h1>
-          <p className="mt-2 text-slate-600">
-            Identificación del tipo de diabetes con mayor probabilidad en un paciente
-          </p>
-        </header>
+    <ProveedorPrediccion>
+      <div className="flex min-h-screen flex-col bg-fondo">
+        <Header />
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <FormularioPaciente onEnviar={manejarEnvio} cargando={cargando} error={error} />
-          <ResultCard prediccion={prediccion} />
-        </div>
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-14 pt-32 sm:px-6 lg:pt-24">
+          <Routes>
+            <Route path="/" element={<Inicio />} />
+            <Route path="/nueva-prediccion" element={<NuevaPrediccion />} />
+            <Route path="/resultados" element={<Resultados />} />
+            <Route path="/pacientes" element={<Pacientes />} />
+            <Route path="/historial" element={<Historial />} />
+            <Route path="*" element={<Inicio />} />
+          </Routes>
+        </main>
+
+        <footer className="border-t border-borde bg-white">
+          <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <p>
+              <span className="font-titulo font-semibold text-guinda">PrediDiabetes</span> ·
+              Sistema de apoyo al diagnóstico
+            </p>
+            <p className="text-xs">
+              Proyecto de tesis · Universidad · Contacto para uso clínico autorizado
+            </p>
+          </div>
+        </footer>
       </div>
-    </main>
+    </ProveedorPrediccion>
   )
 }
