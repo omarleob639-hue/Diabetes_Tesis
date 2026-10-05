@@ -267,6 +267,87 @@ Implementado y verificado:
 
 ---
 
+## Plan de trabajo — sesión del 6 de octubre
+
+Decidido hoy: **descargar Pima y arrancar el EDA + entrenamiento.** El resto
+queda en lista; estos son los pasos.
+
+### Paso 1 — Descargar Pima
+- Pima Indians Diabetes, 768 registros, 8 variables. UCI / Kaggle.
+- Destino: `data/raw/pima/`
+- Validar el MD5 contra la fuente antes de usarlo.
+
+### Paso 2 — EDA
+- Nulos por columna. En Pima los ceros en glucosa, IMC y presión son
+  **valores faltantes disfrazados**: el dataset los codifica como `0`.
+- Distribución de clases: `sano` 500, `tipo_2` 268.
+- Correlación de cada variable con el desenlace.
+- **Sin gráficos dentro del repo:** son datos de terceros.
+
+### Paso 3 — Decidir 3 vs 4 clases
+Pendiente de los hallazgos del EDA. Con lo revisado, la vía triclásica
+(`sano` / `prediabetes` / `diabetes`) es la defendible. La tetraclásica
+exige DM1 real, que sigue sin fuente abierta.
+
+### Paso 4 — Preprocesamiento
+- Imputar ceros inválidos con la mediana por columna.
+- Estandarizar con `StandardScaler`.
+- **Split por sujeto, nunca por fila** (ver nota de leakage abajo).
+
+### Paso 5 — Entrenar y evaluar
+- Red neuronal en TensorFlow / Keras.
+- Split estratificado 70/15/15.
+- Validación cruzada k-fold.
+- Métricas: exactitud, sensibilidad, especificidad, F1 por clase,
+  matriz de confusión multiclase, tasa de falsos positivos.
+
+### Paso 6 — Exportar a ONNX
+Reduce tamaño y cold start frente a TensorFlow crudo. Necesario si el
+backend va a AWS Lambda.
+
+### Paso 7 — Integrar y publicar
+- Cargar el modelo en `services/model_service.py`.
+- Quitar el banner de "datos de demostración".
+- Desplegar el backend y apuntar `VITE_API_BASE_URL` a la URL real.
+
+### Datos ya descargados
+| Ubicación | Contenido | Veredicto |
+|---|---|---|
+| `data/raw/diabetes_datasets.zip` | Shanghai T1DM + T2DM, CC BY 4.0 | **No sirve**: 7 de 8 variables ausentes |
+| `data/raw/figshare_shanghai/` | Descomprimido, 16 + 109 archivos | Solo CGM e insulina |
+
+Shanghai contiene únicamente `Date`, `CGM (mg/dl)`, `CBG (mg/dl)`,
+`Blood Ketone`, `Dietary intake`, `Insulin dose`, `CSII basal/bolus`.
+No hay edad, sexo, IMC, HbA1c, presión ni antecedentes familiares: es
+monitorización continua, no cribado.
+
+### Candidatos revisados el 6 de octubre
+| Candidato | Cobertura | Estatus |
+|---|---|---|
+| T1DiabetesGranada (Zenodo) | 736 DM1, edad, sexo, glucosa, HbA1c. **Sin presión arterial** | Requiere permiso manual |
+| FDDB Dinamarca | **Las 8 variables**; 3,691 DM1 + 19,085 DM2 | Solicitud formal a Odense Univ. |
+| Bimodal Shanghai 2026 | 5,922 pacientes, 190 atributos, antecedentes familiares | Solo diabéticos, sin sanos |
+
+Conclusión: **no existe dataset público descargable con las 8 variables +
+DM1 + DM2 + sano + gestacional.** La DM1 se diagnostica en la infancia con
+criterios clínicos que rara vez se publican tabulados.
+
+### Nota crítica: data leakage
+Los datasets longitudinales traen **varias filas por paciente**
+(`1002_0`, `1002_1`, `1002_2` son el mismo sujeto). Un split por fila mete
+al mismo paciente en train y test y la exactitud sube artificialmente.
+**Siempre agrupar por paciente.**
+
+### Nota ética
+Los datos de terceros son registros clínicos identificables; los nombres de
+archivo son IDs internos de hospital. Reglas:
+- Todo el análisis ocurre **en la máquina local**.
+- **Nunca** subirlos a GitHub, Vercel ni servicios externos de IA.
+- En la tesis: solo el link de la fuente, cero filas de pacientes.
+- Citar la licencia. Shanghai es CC BY 4.0.
+
+---
+
 ## Lo que falta
 ### 1. Frontend — listo, sin bloqueos
 Nada pendiente. Un detalle de copy: `Inicio` afirma que el modelo fue
@@ -296,7 +377,9 @@ Reduce el tamaño y el arranque respecto a TensorFlow crudo.
 |---|---|
 | Pima Indians | Aporta `sano` (500) y `tipo_2` (268); no DM1 ni gestacional |
 | GDM India (Cho et al.) | **Solo casos GDM.** Sin controles, sin sensores, mezcla DM1/DM2 |
+| Shanghai T1DM/T2DM (figshare) | **Descargado y descartado.** Solo CGM e insulina; 7 de 8 variables ausentes |
 | T1DiabetesGranada | El más cercano a DM1. Requiere permiso manual; **no descargado** |
+| FDDB Dinamarca | Tiene las 8 variables y 3,691 DM1; solicitud formal, no descarga |
 | Prontuario Brasil (DM1/2) | Acceso restringido, mezcla DM1 y DM2 |
 | PMC9954149 | **No usar**: sus clases GDM fueron fabricadas |
 
@@ -323,6 +406,10 @@ Hay una **copia obsoleta del proyecto** en
 `Desktop\omar\omar\Titulación\diabetes-predictor\frontend` (scaffold de
 agosto, Tailwind 3, sin `vercel.json`). No contiene nada del diseño actual.
 No borrar sin revisar antes: podría tener trabajo propio.
+
+Detalle: el `.gitignore` excluye `data/`, así que el ZIP de Shanghai que se
+descargó **no está en git**. Correcto, pero significa que no está en GitHub:
+si se pierde el disco, hay que volver a bajarlo del figshare.
 
 ---
 
