@@ -5,7 +5,7 @@ description: Usar cuando trabajes en los notebooks de Jupyter para exploración,
 # Jupyter notebook skill
 
 ## Estructura Sugerida
-1. `01_exploracion.ipynb`: Análisis de datos clínicos de Calpulalpan.
+1. `01_exploracion.ipynb`: Exploración de los datasets clínicos disponibles (Pima y futuras fuentes reales).
 2. `02_preprocesamiento.ipynb`: Limpieza y normalización.
 3. `03_entrenamiento.ipynb`: Entrenamiento de la RNA multiclase.
 4. `04_evaluacion.ipynb`: Validación y métricas finales.

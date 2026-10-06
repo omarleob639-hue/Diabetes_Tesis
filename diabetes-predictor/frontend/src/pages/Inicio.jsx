@@ -49,9 +49,14 @@ export default function Inicio() {
           Sistema de Predicción de Diabetes
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/85">
-          Plataforma basada en una red neuronal multiclase entrenada con datos clínicos
-          de pacientes del municipio de Calpulalpan, Tlaxcala. Estima la probabilidad de
-          diabetes tipo 1, tipo 2, gestacional o ausencia de diabetes.
+          Plataforma de apoyo al diagnóstico basada en una red neuronal multiclase.
+          Estima la probabilidad de diabetes tipo 1, tipo 2, gestacional o ausencia de
+          diabetes a partir de ocho variables clínicas de acceso rutinario.
+        </p>
+        <p className="mt-3 max-w-2xl rounded-lg bg-white/12 px-3 py-2 text-sm leading-relaxed text-white/85">
+          Versión de demostración: el modelo aún no está entrenado con datos clínicos
+          reales y opera con datos de referencia; los resultados no deben usarse para
+          decisiones clínicas.
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link to="/nueva-prediccion" className="btn-base btn-dorado">
