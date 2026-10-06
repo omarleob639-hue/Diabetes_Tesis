@@ -272,22 +272,48 @@ Implementado y verificado:
 Decidido hoy: **descargar Pima y arrancar el EDA + entrenamiento.** El resto
 queda en lista; estos son los pasos.
 
-### Paso 1 — Descargar Pima
+### Paso 1 — Descargar Pima ✅ hecho (6 oct)
 - Pima Indians Diabetes, 768 registros, 8 variables. UCI / Kaggle.
-- Destino: `data/raw/pima/`
-- Validar el MD5 contra la fuente antes de usarlo.
+- Destino: `data/raw/pima/pima.csv` (23.3 KB, sin encabezado, 9 columnas).
+- MD5 `85e73c52eccb545102f43b2db03533f6`, espejo de Brownlee, 768 filas.
+- `data/raw/*` está en `.gitignore`: **el CSV no viaja a git.**
 
-### Paso 2 — EDA
-- Nulos por columna. En Pima los ceros en glucosa, IMC y presión son
-  **valores faltantes disfrazados**: el dataset los codifica como `0`.
-- Distribución de clases: `sano` 500, `tipo_2` 268.
-- Correlación de cada variable con el desenlace.
+### Paso 2 — EDA ✅ hecho (6 oct)
+Script reproducible: `backend/notebooks/01_exploracion_pima.py`
+Informe completo: `EDA_PIMA.md`. Resumen:
+
+- **Ceros disfrazados: 652 celdas (17.0 %)** en 5 variables —
+  `insulina` 374 (48.7 %), `pliegue_cutaneo` 227 (29.6 %),
+  `presion_diastolica` 35, `imc` 11, `glucosa` 5.
+  Solo **392 filas (51 %)** están limpias de todo `0` imposible.
+- Nulos reales (NaN): 0. Duplicados: 0.
+- Clases: `sano` 500 (65.1 %), `diabetes` 268 (34.9 %), desbalance 1.87:1.
+- Correlación con el desenlace: `glucosa` 0.467 > `imc` 0.293 >
+  `edad` 0.238 > `embarazos` 0.222 > `funcion_pedigree` 0.174 >
+  `insulina` 0.131 > `pliegue_cutaneo` 0.075 >
+  `presion_diastolica` 0.065.
+- **Cobertura de las 8 variables del sistema: 4 directas** (edad, IMC,
+  glucosa en ayuno, presión diastólica) + 1 proxy (`funcion_pedigree`
+  por antecedentes familiares) + 3 sin dato usable (sexo constante=F,
+  **HbA1c ausente**, **presión sistólica ausente**).
 - **Sin gráficos dentro del repo:** son datos de terceros.
 
-### Paso 3 — Decidir 3 vs 4 clases
-Pendiente de los hallazgos del EDA. Con lo revisado, la vía triclásica
-(`sano` / `prediabetes` / `diabetes`) es la defendible. La tetraclásica
-exige DM1 real, que sigue sin fuente abierta.
+### Paso 3 — Decidir 3 vs 4 clases ⏳ pendiente, con números
+Lo que Pima aporta y lo que no:
+
+| Clase | ¿Pima? | Por qué |
+|---|---|---|
+| `tipo_2` | Sí, parcial | adultas ≥21 años, dx por glucosa; asumida tipo 2 por literatura |
+| `sano` | Sí, parcial | `resultado = 0` |
+| `tipo_1` | **No** | sin edad de inicio, sin autoanticuerpos, sin insulina desde el dx |
+| `gestacional` | **No** | sin semana de gestación, sin controles embarazadas sanas |
+
+Con Pima **solo hay 2 etiquetas observables**. La vía triclásica
+(`sano` / `prediabetes` / `diabetes`) es la defendible con lo que hay hoy:
+`prediabetes` se puede derivar de umbrales reales sobre `glucosa` e `imc`,
+no hace falta inventar filas. La tetraclásica **exige DM1 real + GDM real
+con controles**, que siguen sin fuente descargada. La decisión final se toma
+al cerrar los candidatos de FDDB/Dryad, no por conveniencia de la demo.
 
 ### Paso 4 — Preprocesamiento
 - Imputar ceros inválidos con la mediana por columna.
@@ -313,8 +339,10 @@ backend va a AWS Lambda.
 ### Datos ya descargados
 | Ubicación | Contenido | Veredicto |
 |---|---|---|
+| `data/raw/pima/pima.csv` | Pima, 768 filas, binario | **Base de la demo**: `sano` 500 / `tipo_2` 268 |
 | `data/raw/diabetes_datasets.zip` | Shanghai T1DM + T2DM, CC BY 4.0 | **No sirve**: 7 de 8 variables ausentes |
 | `data/raw/figshare_shanghai/` | Descomprimido, 16 + 109 archivos | Solo CGM e insulina |
+| `%USERPROFILE%\Downloads\Master_data_GDM.xlsx` | GDM Mendeley, 813 filas | **Descartado**: sin presión arterial, sin controles (809/813 tratados) y **valores alterados entre hojas** (`fbs` 113→89, `Hba1c` 6.5→5.9, `gtt2` 329→199) |
 
 Shanghai contiene únicamente `Date`, `CGM (mg/dl)`, `CBG (mg/dl)`,
 `Blood Ketone`, `Dietary intake`, `Insulin dose`, `CSII basal/bolus`.
@@ -350,10 +378,11 @@ archivo son IDs internos de hospital. Reglas:
 
 ## Lo que falta
 ### 1. Frontend — listo, sin bloqueos
-Nada pendiente. Un detalle de copy: `Inicio` afirma que el modelo fue
-entrenado con datos de Calpulalpan, Tlaxcala. **Esa afirmación no está
-respaldada todavía** por ningún dataset. Mantener solo si se confirma, o
-reescribir como demostración.
+Copy corregido: `Inicio` ya **no afirma** que el modelo fue entrenado con
+datos de Calpulalpan (commit `171c126`). Ahora declara que es una versión de
+demostración con datos de referencia. Queda pendiente revisar
+`tesis/Capitulo1.tex`, `Capitulo2.tex` y `tesis_diabetes_resumen.md`, que
+repiten la misma afirmación.
 
 ### 2. Backend — bloqueado en Vercel
 `VITE_API_BASE_URL=http://localhost:8000` no existe desde Vercel, por eso
@@ -407,15 +436,19 @@ Hay una **copia obsoleta del proyecto** en
 agosto, Tailwind 3, sin `vercel.json`). No contiene nada del diseño actual.
 No borrar sin revisar antes: podría tener trabajo propio.
 
-Detalle: el `.gitignore` excluye `data/`, así que el ZIP de Shanghai que se
-descargó **no está en git**. Correcto, pero significa que no está en GitHub:
-si se pierde el disco, hay que volver a bajarlo del figshare.
+Detalle: el `.gitignore` excluye `data/`, así que ni el ZIP de Shanghai ni
+`pima.csv` **están en git**. Correcto desde el punto de vista ético, pero
+significa que no están en GitHub: si se pierde el disco, hay que volver a
+bajarlos de la fuente (el EDA sí está versionado:
+`backend/notebooks/01_exploracion_pima.py`).
 
 ---
 
 ## Limitaciones
 - El modelo no está entrenado: hoy el sistema **no predice**, simula.
 - Los datos son de pacientes del municipio de Calpulalpan, Tlaxcala
+  *(afirmación de la tesis, **sin respaldar todavía**: los datasets usados
+  hasta hoy son Pima/UCI y fuentes públicas de terceros)*
 - Muestra mínima de 1000 registros
 - El sistema es herramienta de apoyo al diagnóstico, no reemplaza al médico
 - Periodo de datos: 2020–2026
