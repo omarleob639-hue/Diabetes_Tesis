@@ -13,7 +13,7 @@ class ModelNotReadyError(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class PredictionOutcome:
-    """Resultado de la red neuronal: clase ganadora y sus 4 probabilidades."""
+    """Resultado del modelo: clase ganadora y sus 4 probabilidades."""
 
     resultado: DiabetesType
     probabilidades: dict[DiabetesType, float]
@@ -22,21 +22,30 @@ class PredictionOutcome:
 class ModelService:
     """Carga el modelo entrenado y aplica el preprocesamiento.
 
-    El orden de FEATURE_ORDER y la codificación de SEXO_ENCODING son el contrato
-    entre el notebook de entrenamiento y esta capa. Si en el notebook se cambia
-    el orden de columnas o la codificación del sexo, debe cambiarse aquí también:
-    un orden distinto produce predicciones silenciosamente incorrectas.
+    El orden de FEATURE_ORDER es el contrato entre el script de entrenamiento
+    (backend/notebooks/03_entrenamiento_pima.py) y esta capa. Si el script
+    cambia el orden de columnas, debe cambiarse aquí también: un orden distinto
+    produce predicciones silenciosamente incorrectas.
+
+    Estado actual — modelo binario de demostración (Pima):
+    - 4 features con dato directo en Pima: `edad`, `imc`, `glucosa_ayuno` y
+      `presion_diastolica`. `sexo`, `hba1c`, `presion_sistolica` y
+      `antecedentes_familiares` se reciben del formulario pero el modelo de
+      demostración no los usa (Pima no los registra; ver EDA_PIMA.md).
+    - Clasificador MLP de scikit-learn guardado como `diabetes_model.joblib`
+      con escalador `scaler.joblib`. TensorFlow no tiene ruedas oficiales para
+      Python 3.13; si el día de mañana se entrena el modelo tetraclásico en
+      Keras (`.h5`), esta capa lo detecta y lo sirve igual.
+    - La salida es binaria: índice 1 = diabetes (tipo_2), índice 0 = sano.
+      `tipo_1` y `gestacional` se devuelven en 0.0: el modelo NO puede
+      predecirlas con los datos actuales y no debe fabricarse.
     """
 
     FEATURE_ORDER = (
         "edad",
-        "sexo",
         "imc",
         "glucosa_ayuno",
-        "hba1c",
-        "presion_sistolica",
         "presion_diastolica",
-        "antecedentes_familiares",
     )
 
     CLASS_ORDER = (
@@ -57,6 +66,7 @@ class ModelService:
         self._stub_enabled = stub_enabled
         self._model = None
         self._scaler = None
+        self._is_binary = False
 
     @property
     def is_ready(self) -> bool:
@@ -70,19 +80,27 @@ class ModelService:
         if not self._model_path.exists():
             return False
 
+        scaler_path = self._model_path / "scaler.joblib"
+
         try:
             import joblib
+
+            binary_path = self._model_path / "diabetes_model.joblib"
+            if binary_path.exists():
+                self._model = joblib.load(binary_path)
+                self._scaler = joblib.load(scaler_path) if scaler_path.exists() else None
+                self._is_binary = True
+                return True
+
             import tensorflow as tf
 
             self._model = tf.keras.models.load_model(self._model_path)
-            scaler_path = self._model_path.parent / "scaler.joblib"
             self._scaler = joblib.load(scaler_path) if scaler_path.exists() else None
+            return True
         except ImportError:
             return False
         except Exception:  # noqa: BLE001 - cualquier fallo de carga deja el modelo no disponible
             return False
-
-        return True
 
     def predict(self, patient: PatientCreate) -> PredictionOutcome:
         if self._stub_enabled:
@@ -92,6 +110,9 @@ class ModelService:
                 "El modelo no está cargado. Entrena el modelo o activa MODEL_STUB_ENABLED."
             )
 
+        if self._is_binary:
+            return self._predict_binario(patient)
+
         features = self._build_feature_vector(patient)
         if self._scaler is not None:
             features = self._scaler.transform([features])
@@ -100,16 +121,31 @@ class ModelService:
         mapped = dict(zip(self.CLASS_ORDER, (float(p) for p in probabilities), strict=True))
         return PredictionOutcome(resultado=max(mapped, key=mapped.__getitem__), probabilidades=mapped)
 
+    def _predict_binario(self, patient: PatientCreate) -> PredictionOutcome:
+        features = self._build_feature_vector(patient)
+        if self._scaler is not None:
+            features = self._scaler.transform([features])
+
+        proba = self._model.predict_proba(features)[0]
+        p_sano = float(proba[0])
+        p_tipo_2 = float(proba[1])
+        probabilidades = {
+            DiabetesType.TIPO_1: 0.0,
+            DiabetesType.TIPO_2: p_tipo_2,
+            DiabetesType.GESTACIONAL: 0.0,
+            DiabetesType.SANO: p_sano,
+        }
+        resultado = (
+            DiabetesType.TIPO_2 if p_tipo_2 >= p_sano else DiabetesType.SANO
+        )
+        return PredictionOutcome(resultado=resultado, probabilidades=probabilidades)
+
     def _build_feature_vector(self, patient: PatientCreate) -> list[float]:
         return [
             float(patient.edad),
-            self.SEXO_ENCODING[patient.sexo],
             float(patient.imc),
             float(patient.glucosa_ayuno),
-            float(patient.hba1c) if patient.hba1c is not None else 0.0,
-            float(patient.presion_sistolica),
             float(patient.presion_diastolica),
-            1.0 if patient.antecedentes_familiares else 0.0,
         ]
 
     def _predict_stub(self, patient: PatientCreate) -> PredictionOutcome:

@@ -1,6 +1,6 @@
 # Sistema de Predicción de Diabetes — Contexto del Proyecto
 
-> **Actualizado:** 5 de octubre de 2026 · commit `cee87d2` desplegado en Vercel
+> **Actualizado:** 6 de octubre de 2026 · modelos binarios e integración en el backend
 
 ## ¿Qué es?
 Sistema web para la detección temprana de diabetes mellitus desarrollado
@@ -8,9 +8,11 @@ como tesis de licenciatura. Predice de manera integrada el tipo de diabetes
 con mayor probabilidad en un paciente: tipo 1, tipo 2, gestacional o sano,
 utilizando una red neuronal artificial multiclase.
 
-**Estado crítico:** la interfaz está publicada, pero la red neuronal **no está
-entrenada**. El sistema opera con datos de demostración y lo declara en
-pantalla. Ninguna predicción mostrada es un resultado real del modelo.
+**Estado actual:** la red neuronal multiclase **aún no está entrenada** (el
+tetraclásico requiere DM1 y GDM reales con las 8 variables, sin fuente pública
+descargada). Se entrenó e integró un **modelo binario de demostración** con
+Pima (`sano`/`tipo_2`, 4 variables, exactitud CV 0.763). La UI sigue
+funcionando en modo demostración y lo declara en pantalla.
 
 ---
 
@@ -171,8 +173,8 @@ diabetes-predictor/
 │   ├── routers/                Endpoints HTTP
 │   ├── services/               Lógica de predicción
 │   ├── tests/                  Pruebas de humo
-│   ├── notebooks/              Experiments (bloqueado)
-│   └── model/saved_model/      Modelo entrenado (bloqueado)
+│   ├── notebooks/              EDA/preproc/entrenamiento (Pima demo) ✅
+│   └── model/saved_model/      Artefactos .joblib binario demo (gitignored)
 ├── database/
 │   ├── migrations/             SQL versionado (001_esquema_inicial.sql)
 │   └── seeds/                  Datos de prueba
@@ -248,8 +250,8 @@ npm run dev
 1. Base de datos (PostgreSQL + Supabase) — **hecho**
 2. Backend (FastAPI + contratos) — **hecho**
 3. Frontend (React + Tailwind + React Router) — **hecho y desplegado**
-4. Modelo ML (Jupyter → TensorFlow + Scikit-learn) — **bloqueado**
-5. Integración del modelo en `model_service.py` — **bloqueado**
+4. Modelo ML (Jupyter → TensorFlow + Scikit-learn) — **parcial: binario demo (Pima) hecho, tetraclásico bloqueado**
+5. Integración del modelo en `model_service.py` — **hecho para el binario**
 6. Despliegue del backend (AWS Lambda) — **pendiente**
 7. Evaluación y comparación estadística — **bloqueado**
 
@@ -315,17 +317,16 @@ no hace falta inventar filas. La tetraclásica **exige DM1 real + GDM real
 con controles**, que siguen sin fuente descargada. La decisión final se toma
 al cerrar los candidatos de FDDB/Dryad, no por conveniencia de la demo.
 
-### Paso 4 — Preprocesamiento
-- Imputar ceros inválidos con la mediana por columna.
+### Paso 4 — Preprocesamiento ✅ hecho para el binario demo
+- Imputar ceros inválidos con la mediana **por grupo** en `02_preprocesamiento_pima.py`.
 - Estandarizar con `StandardScaler`.
 - **Split por sujeto, nunca por fila** (ver nota de leakage abajo).
 
-### Paso 5 — Entrenar y evaluar
-- Red neuronal en TensorFlow / Keras.
-- Split estratificado 70/15/15.
-- Validación cruzada k-fold.
-- Métricas: exactitud, sensibilidad, especificidad, F1 por clase,
-  matriz de confusión multiclase, tasa de falsos positivos.
+### Paso 5 — Entrenar y evaluar ✅ hecho para el binario demo (Pima)
+- Red neuronal **MLP de scikit-learn** (sin ruedas de TF para Py 3.13): `03_entrenamiento_pima.py`.
+- Validación cruzada estratificada 5-fold (0.763 ± 0.025).
+- Métricas por clase, matriz de confusión y sanidad impresas en consola.
+- **Pendiente para el tetraclásico:** TensorFlow/Keras, split 70/15/15, F1 ≥ 0.80.
 
 ### Paso 6 — Exportar a ONNX
 Reduce tamaño y cold start frente a TensorFlow crudo. Necesario si el
@@ -398,9 +399,36 @@ Opciones para el backend, sin decisión tomada:
 Recomendación previa: **exportar el modelo a ONNX y servirlo en Lambda**.
 Reduce el tamaño y el arranque respecto a TensorFlow crudo.
 
-### 3. Modelo ML — bloqueado por datos
-**Este es el cuello de botella real.** El filtro de candidatos está en
-`FILTRO_DATASETS.md`. Resumen de lo revisado:
+### 3. Modelo ML — demo binaria lista, tetraclásico bloqueado por datos
+**Modelo binario de demostración (Pima) — entrenado e integrado (6 oct).**
+Pipeline reproducible en `backend/notebooks/`:
+`01_exploracion_pima.py` → `02_preprocesamiento_pima.py` →
+`03_entrenamiento_pima.py`.
+
+- **Features (4):** `edad`, `imc`, `glucosa_ayuno`, `presion_diastolica`.
+  Pima no registra `hba1c`, `presión sistólica` ni variabilidad de `sexo`;
+  el formulario las recibe pero el modelo de demostración no las usa
+  (documentado en docstring de `model_service.py` y en `EDA_PIMA.md`).
+- **Imputación:** 51 `0` imposibles (glucosa 5, imc 11, PAD 35) imputados
+  con la **mediana por grupo** (outcome), no la global.
+- **Modelo:** MLP de scikit-learn `(32,16,8)`, escalado con `StandardScaler`,
+  todos ajustados dentro de cada fold (sin leakage).
+- **Validación:** 5 folds estratificados.
+  - Exactitud media: **0.763 ± 0.025**
+  - F1: `sano` 0.82 (prec 0.82 / rec 0.82) — `tipo_2` 0.66 (prec 0.66 / rec 0.66)
+  - Matriz de confusión agregada: `[[410 90] [92 176]]`
+  - Sanidad: glucosa alta + IMC alto → `tipo_2` (p=0.98); perfil sano → `sano`
+    (p=0.997); frontera (glucosa 118, IMC 27) → `sano` por poco (p=0.55).
+- **Por qué sklearn y no TensorFlow:** no hay ruedas oficiales de TF para
+  Python 3.13 en Windows (nota en `requirements.txt`). El MLP cumple la
+  condición de "red neuronal" de la tesis; el tetraclásico en Keras `.h5` se
+  servirá cuando existan los datos (la capa de carga ya lo soporta).
+- **Honestidad del demo:** la salida es binaria. `tipo_1` y `gestacional` se
+  devuelven en **0.0**: el modelo NO las predice y no se fabrican.
+  Artefactos `.joblib` fuera de git (`*.joblib` en `.gitignore`).
+
+**El cuello de botella real sigue aquí para las 4 clases.** El filtro de
+candidatos está en `FILTRO_DATASETS.md`. Resumen de lo revisado:
 
 | Candidato | Problema |
 |---|---|
@@ -445,7 +473,12 @@ bajarlos de la fuente (el EDA sí está versionado:
 ---
 
 ## Limitaciones
-- El modelo no está entrenado: hoy el sistema **no predice**, simula.
+- **Modelo tetraclásico sin entrenar**: las clases `tipo_1` y `gestacional`
+  no tienen fuente real con las 8 variables; el modelo actual es binario de
+  demostración (`sano`/`tipo_2`, 4 variables, exactitud CV 0.763) y devuelve
+  0.0 en las dos clases que no puede predecir.
+- El modelo de demostración **ignora** `sexo`, `hba1c`, `presión sistólica` y
+  `antecedentes familiares`: Pima no los registra.
 - Los datos son de pacientes del municipio de Calpulalpan, Tlaxcala
   *(afirmación de la tesis, **sin respaldar todavía**: los datasets usados
   hasta hoy son Pima/UCI y fuentes públicas de terceros)*

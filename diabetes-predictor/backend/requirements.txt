@@ -5,5 +5,11 @@ psycopg[binary]>=3.2
 pydantic>=2.9
 pydantic-settings>=2.6
 
-# TensorFlow y Scikit-learn se agregan cuando se defina la fuente de datos:
+# Modelo binario de demostración (Pima): MLP de scikit-learn + escalador.
+# pandas/numpy/joblib los arrastra scikit-learn; no se enlistan explícitos.
+scikit-learn>=1.5
+joblib>=1.4
+
+# TensorFlow se agrega cuando exista el modelo tetraclásico real:
 # TensorFlow no tiene ruedas oficiales para Python 3.13 en Windows.
+# pandas y tabulate se usan solo en los scripts de backend/notebooks/ (EDA).

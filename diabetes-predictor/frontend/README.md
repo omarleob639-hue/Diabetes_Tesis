@@ -79,4 +79,7 @@ detección es automática.
   dentro del bloque, nunca `@utility x:hover`.
 - Sin modelo entrenado, el backend responde 503 salvo que se active
   `MODEL_STUB_ENABLED=true`, que devuelve probabilidades ficticias
-  útiles **solo para desarrollo de interfaz**.
+  útiles **solo para desarrollo de interfaz**. Con `backend/model/saved_model/`
+  (`diabetes_model.joblib` + `scaler.joblib`, entrenados con Pima) responde
+  con el **modelo binario real** (`sano`/`tipo_2`) aunque la API siga
+  exponiendo las 4 clases (las dos no predichas salen en 0.0).
