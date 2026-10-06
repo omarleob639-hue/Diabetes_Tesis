@@ -1,6 +1,6 @@
 # Sistema de Predicción de Diabetes — Contexto del Proyecto
 
-> **Actualizado:** 6 de octubre de 2026 · modelos binarios e integración en el backend
+> **Actualizado:** 6 de octubre de 2026 · EDA + modelo binario integrado + demo local probada
 
 ## ¿Qué es?
 Sistema web para la detección temprana de diabetes mellitus desarrollado
@@ -266,6 +266,26 @@ Implementado y verificado:
 - Las 5 rutas responden 200 y los 17 módulos del grafo de imports compilan.
 - Build en 505 ms; bundle de 285 kB (89 kB gzip).
 - Desplegado en Vercel, proyecto `Universidad`.
+- **Demo local verificada de punta a punta** (6 oct): backend FastAPI con el
+  modelo binario real + frontend en dev. Casos comprobados: diabético →
+  `tipo_2` (p=0.993), sano → `sano` (p=0.992), frontera (glucosa 120, IMC 28)
+  → `tipo_2` (p=0.598).
+
+### Probar la demo localmente (modelo binario real)
+```powershell
+# 1. Backend (usa SQLite local; modelos ya creados en test.db)
+cd diabetes-predictor/backend
+$env:DATABASE_URL='sqlite:///./test.db'; $env:MODEL_STUB_ENABLED='false'
+.venv\Scripts\python.exe -c "from db.base import engine; from db.models import Base; Base.metadata.create_all(bind=engine)"
+.venv\Scripts\uvicorn main:app --host 127.0.0.1 --port 8000
+
+# 2. Frontend (otro terminal)
+cd diabetes-predictor/frontend
+npm run dev
+# Abrir http://127.0.0.1:5173/
+```
+Nota dev: `sqlite:///./test.db` es SOLO para la demo local; en producción se
+aplican las migraciones SQL a Supabase (PostgreSQL).
 
 ---
 

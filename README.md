@@ -4,9 +4,10 @@ Tesis de licenciatura sobre detección de diabetes mediante redes neuronales
 artificiales. Sistema multiclase que identifica el tipo de diabetes con mayor
 probabilidad en un paciente (tipo 1, tipo 2, gestacional o sano).
 
-> **Estado:** la interfaz está publicada en Vercel, pero **el modelo no está
-> entrenado**. El sistema opera con datos de demostración y lo declara en
-> pantalla. El bloqueo actual es la fuente de datos, no el código.
+> **Estado:** la interfaz está publicada en Vercel y el sistema funciona de
+> punta a punta **en local** con un modelo binario real (Pima, `sano`/`tipo_2`).
+> El modelo tetraclásico sigue bloqueado por falta de datos de tipo 1 y
+> gestacional; mientras tanto la UI lo declara en pantalla.
 
 ## Documentos
 
@@ -67,6 +68,19 @@ El frontend funciona sin backend: si la API no responde, cae a datos de
 demostración y lo avisa en pantalla. La variable que lee es
 `VITE_API_BASE_URL` (ver `frontend/.env.example`).
 
+Para probar la demo **con el modelo binario real** en local:
+```powershell
+# Backend (SQLite temporal; el modelo se busca como diabetes_model.joblib)
+cd diabetes-predictor/backend
+$env:DATABASE_URL='sqlite:///./test.db'; $env:MODEL_STUB_ENABLED='false'
+.venv\Scripts\python.exe -c "from db.base import engine; from db.models import Base; Base.metadata.create_all(bind=engine)"
+.venv\Scripts\uvicorn main:app --host 127.0.0.1 --port 8000
+
+# Frontend (otro terminal) → http://127.0.0.1:5173/
+cd diabetes-predictor/frontend
+npm run dev
+```
+
 ## Estado
 
 | Componente | Estado |
@@ -74,8 +88,9 @@ demostración y lo avisa en pantalla. La variable que lee es
 | Esquema SQL, migraciones y seeds | Implementado, sin aplicar a Supabase |
 | API FastAPI (9 endpoints, 10 pruebas) | ✅ pasa |
 | Interfaz React con 5 rutas | ✅ publicada en Vercel |
-| Modelo de red neuronal | 🔴 Sin entrenar — bloqueado por datos |
-| Despliegue del backend | 🟡 Pendiente de decisión (Lambda vs App Runner) |
+| Modelo binario de demostración (Pima) | ✅ entrenado (MLP, CV 0.763) e integrado |
+| Modelo tetraclásico (tipo 1/2/gestacional/sano) | 🔴 Bloqueado por datos |
+| Despliegue del backend | 🟡 Pendiente de decisión (Lambda vs App Runner vs Render) |
 
 El entrenamiento está pendiente de definir la fuente de los datos. Sin un
 dataset real de diabetes tipo 1, la clasificación tetraclásica no es
