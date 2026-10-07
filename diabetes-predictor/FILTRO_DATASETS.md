@@ -1,6 +1,6 @@
 # Filtro de admision de datasets
 
-Regla de decision para evaluar un dataset sin depender de un tercero. Basado en los datasets ya revisados: Pima/NIDDK, gestacional India, prontuario DM1 Brasil, DTD, registro indio 323,145.
+Regla de decision para evaluar un dataset sin depender de un tercero. Basado en los datasets ya revisados: Pima/NIDDK, gestacional India, prontuario DM1 Brasil, DTD, registro indio 323,145, Dryad GDM sur de China.
 
 ## Las 5 preguntas
 
@@ -97,10 +97,31 @@ Si metes cualquiera de estas, predices una consecuencia del diagnostico, no el d
 | Dataset | Motivo |
 |---|---|
 | DM1 prontuario (Brasil, portugues) | Sin glucosa, sin HbA1c, sin presion, sin IMC adulto. Pediactrico. |
-| DM1 publicos con CGM (DiaData, OhioT1DM, T1DiabetesGranada, REPLACE-BG, WISDM, ShanghaiT1DM) | Time-series de monitorizacion continua en personas YA diagnosticaas. No son cribado. Sin grupo control. |
+| DM1 publicos con CGM (DiaData, OhioT1DM, REPLACE-BG, WISDM, ShanghaiT1DM) | Time-series de monitorizacion continua en personas YA diagnosticadas. No son cribado. Sin grupo control. |
+| GDM Dryad sur de China | No descartado: ver "Evaluacion Dryad GDM" abajo. |
 | DTD (4 tipos, 99.98%) | Mezcla 4 fuentes, fuga por edad, conteos inconsistentes. |
 | MIDO GDM (1709, CIME) | Sin grupo control. |
 | Registro indio 323,145 pacientes | Unica base con los 4 tipos. Portal privado de pago, no CSV. |
+
+## Evaluacion Dryad GDM (sur de China) — 2026-10-07
+
+Dataset abierto (DOI 10.5061/dryad.rv15dv4j7): 538 GDM + 626 embarazadas sanas, con FPG, HbA1c, SBP, DBP, lípidos y genotipos. Descargado, verificado y limpiado (`backend/notebooks/04_preprocesamiento_dryad.py`; ver `SOLICITUD_DATASETS.md`).
+
+| Pregunta del filtro | Resultado |
+|---|---|
+| 1. ¿Tiene glucosa? | **Sí** — FPG, 1hPG y 2hPG (mmol/L) |
+| 2. ¿Etiqueta por registro? | **Sí** — `Group` 1=GDM, 0=control |
+| 3. ¿Controles sanos de la misma poblacion? | **Sí** — 626 embarazadas sin GDM: justo el control que Pima no tiene para `gestacional` |
+| 4. ¿Edad solapada? | **No evaluable** — el CSV no trae edad (solo el paper); tampoco IMC |
+| 5. Variables utilizables | 4 variables del sistema (FPG, HbA1c, SBP, DBP) — falta `edad`/`imc` |
+
+**Veredicto:** fuente parcial válida para la clase `gestacional` (+ control embarazada sana). **No** puede llenar el contrato de 4 features (edad/imc ausentes). Decisión de rol en el tetraclásico: pendiente.
+
+Nota de calidad: 3 pacientes aparecían etiquetados a la vez como GDM y control con los mismos valores (eliminados); había DBP=7-8 mmHg, HbA1c=1.0-1.1 % y TC=0 (tipeos a NaN).
+
+## Sobre T1DiabetesGranada
+
+No está "descartado" en sí: es un **registro de CGM de pacientes YA diagnosticados de DM1** (736), lo que lo hace inadecuado como cribado o como control — pero sí **sirve como fuente de la clase `tipo_1`** (edad, sexo, glucosa, HbA1c; sin presión arterial). El 7-oct se envió la solicitud de acceso a la Secretaría del ICAR (UGR). Pendiente: cuando llegue el ZIP, re-evaluar si conviene frente a FDDB.
 
 ## Sobre el articulo de 97% de exactitud
 

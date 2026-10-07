@@ -17,6 +17,7 @@ probabilidad en un paciente (tipo 1, tipo 2, gestacional o sano).
 | [`tesis_diabetes_resumen.md`](tesis_diabetes_resumen.md) | Resumen de los capítulos 1–3 y lista de pendientes |
 | [`diabetes-predictor/ENTREGABLES_FINALES.md`](diabetes-predictor/ENTREGABLES_FINALES.md) | **Contexto técnico completo**: arquitectura, API, rutas, paleta, pendientes y datasets descartados |
 | [`diabetes-predictor/FILTRO_DATASETS.md`](diabetes-predictor/FILTRO_DATASETS.md) | Criterios de selección y evaluación de datasets candidatos |
+| [`diabetes-predictor/SOLICITUD_DATASETS.md`](diabetes-predictor/SOLICITUD_DATASETS.md) | Cómo pedir los datasets pendientes (Dryad, T1DiabetesGranada, FDDB) y su estado |
 | [`protocolo2.0-Omar León Montiel.docx`](protocolo2.0-Omar%20León%20Montiel.docx) | Protocolo de investigación |
 
 ## Estructura
@@ -89,13 +90,16 @@ npm run dev
 | API FastAPI (9 endpoints, 10 pruebas) | ✅ pasa |
 | Interfaz React con 5 rutas | ✅ publicada en Vercel |
 | Modelo binario de demostración (Pima) | ✅ entrenado (MLP, CV 0.763) e integrado |
-| Modelo tetraclásico (tipo 1/2/gestacional/sano) | 🔴 Bloqueado por datos |
+| Modelo tetraclásico (tipo 1/2/gestacional/sano) | 🔴 Bloqueado por datos — avance 7-oct: Dryad GDM limpio (534 gestacional + 620 embarazada_sana, sin edad/IMC) y solicitud T1DiabetesGranada enviada |
 | Despliegue del backend | 🟡 Pendiente de decisión (Lambda vs App Runner vs Render) |
 
 El entrenamiento está pendiente de definir la fuente de los datos. Sin un
 dataset real de diabetes tipo 1, la clasificación tetraclásica no es
 defendible: los candidatos revisados solo aportan clases sanas, tipo 2 o
-gestacionales. El detalle está en `FILTRO_DATASETS.md`.
+gestacionales. El 7-oct se avanzó: el **Dryad GDM del sur de China** está
+verificado y limpio (`gestacional` + controles embarazadas, 4 variables del
+sistema, sin edad/IMC) y se **solicitó acceso a T1DiabetesGranada** (DM1).
+El detalle está en `FILTRO_DATASETS.md` y `SOLICITUD_DATASETS.md`.
 
 Ver la sección "Lo que falta" de `ENTREGABLES_FINALES.md` para el desglose
 completo.

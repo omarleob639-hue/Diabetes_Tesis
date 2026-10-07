@@ -328,14 +328,16 @@ Lo que Pima aporta y lo que no:
 | `tipo_2` | Sí, parcial | adultas ≥21 años, dx por glucosa; asumida tipo 2 por literatura |
 | `sano` | Sí, parcial | `resultado = 0` |
 | `tipo_1` | **No** | sin edad de inicio, sin autoanticuerpos, sin insulina desde el dx |
-| `gestacional` | **No** | sin semana de gestación, sin controles embarazadas sanas |
+| `gestacional` | **No** (Pima) | sin semana de gestación; el control quedaba sin fuente |
 
 Con Pima **solo hay 2 etiquetas observables**. La vía triclásica
 (`sano` / `prediabetes` / `diabetes`) es la defendible con lo que hay hoy:
 `prediabetes` se puede derivar de umbrales reales sobre `glucosa` e `imc`,
 no hace falta inventar filas. La tetraclásica **exige DM1 real + GDM real
-con controles**, que siguen sin fuente descargada. La decisión final se toma
-al cerrar los candidatos de FDDB/Dryad, no por conveniencia de la demo.
+con controles**. En el 7-oct se cerró parte del hueco: el **Dryad GDM del sur
+de China** aporta 534 `gestacional` + 620 embarazadas sanas (con HbA1c y
+presión), y la solicitud de **T1DiabetesGranada** (DM1) está **enviada**. La
+decisión final se toma al cerrar esos candidatos, no por conveniencia de la demo.
 
 ### Paso 4 — Preprocesamiento ✅ hecho para el binario demo
 - Imputar ceros inválidos con la mediana **por grupo** en `02_preprocesamiento_pima.py`.
@@ -364,6 +366,11 @@ backend va a AWS Lambda.
 | `data/raw/diabetes_datasets.zip` | Shanghai T1DM + T2DM, CC BY 4.0 | **No sirve**: 7 de 8 variables ausentes |
 | `data/raw/figshare_shanghai/` | Descomprimido, 16 + 109 archivos | Solo CGM e insulina |
 | `%USERPROFILE%\Downloads\Master_data_GDM.xlsx` | GDM Mendeley, 813 filas | **Descartado**: sin presión arterial, sin controles (809/813 tratados) y **valores alterados entre hojas** (`fbs` 113→89, `Hba1c` 6.5→5.9, `gtt2` 329→199) |
+| `data/raw/dryad_gdm/gdm_south_china.csv` | GDM sur de China, 1164 filas | **Usado (parcial)**: tras limpieza quedan 534 `gestacional` + 620 `embarazada_sana` con HbA1c y presión → `data/processed/dryad_gdm_features.csv`. **Sin edad/IMC** |
+
+Limpieza del Dryad: `backend/notebooks/04_preprocesamiento_dryad.py`
+(elimina 3 pacientes con etiqueta contradictoria y 4 filas duplicadas;
+6 tipeos imposibles pasan a NaN). Ver `SOLICITUD_DATASETS.md`.
 
 Shanghai contiene únicamente `Date`, `CGM (mg/dl)`, `CBG (mg/dl)`,
 `Blood Ketone`, `Dietary intake`, `Insulin dose`, `CSII basal/bolus`.
@@ -373,8 +380,9 @@ monitorización continua, no cribado.
 ### Candidatos revisados el 6 de octubre
 | Candidato | Cobertura | Estatus |
 |---|---|---|
-| T1DiabetesGranada (Zenodo) | 736 DM1, edad, sexo, glucosa, HbA1c. **Sin presión arterial** | Requiere permiso manual |
-| FDDB Dinamarca | **Las 8 variables**; 3,691 DM1 + 19,085 DM2 | Solicitud formal a Odense Univ. |
+| T1DiabetesGranada (Zenodo) | 736 DM1, edad, sexo, glucosa, HbA1c. **Sin presión arterial** | ✅ Solicitud enviada (7-oct) a la Secretaría del ICAR |
+| GDM sur de China (Dryad) | 538 GDM + 626 embarazadas sanas; SBP, DBP, FPG, HbA1c e lípidos. **Sin edad/IMC** | ✅ Descargado, verificado y limpio (7-oct) |
+| FDDB Dinamarca | **Las 8 variables**; 3,691 DM1 + 19,085 DM2 | Solicitud formal a Odense Univ. (no contactado — ver `SOLICITUD_DATASETS.md`) |
 | Bimodal Shanghai 2026 | 5,922 pacientes, 190 atributos, antecedentes familiares | Solo diabéticos, sin sanos |
 
 Conclusión: **no existe dataset público descargable con las 8 variables +
@@ -455,7 +463,8 @@ candidatos está en `FILTRO_DATASETS.md`. Resumen de lo revisado:
 | Pima Indians | Aporta `sano` (500) y `tipo_2` (268); no DM1 ni gestacional |
 | GDM India (Cho et al.) | **Solo casos GDM.** Sin controles, sin sensores, mezcla DM1/DM2 |
 | Shanghai T1DM/T2DM (figshare) | **Descargado y descartado.** Solo CGM e insulina; 7 de 8 variables ausentes |
-| T1DiabetesGranada | El más cercano a DM1. Requiere permiso manual; **no descargado** |
+| T1DiabetesGranada | El más cercano a DM1 (736). **Solicitud enviada (7-oct)**; pendiente de acceso |
+| GDM sur de China (Dryad) | **Descargado y limpio (7-oct)**: `gestacional` (534) + `embarazada_sana` (620); HbA1c, SBP, DBP, FPG. Falta `edad`/`imc` |
 | FDDB Dinamarca | Tiene las 8 variables y 3,691 DM1; solicitud formal, no descarga |
 | Prontuario Brasil (DM1/2) | Acceso restringido, mezcla DM1 y DM2 |
 | PMC9954149 | **No usar**: sus clases GDM fueron fabricadas |
@@ -494,9 +503,12 @@ bajarlos de la fuente (el EDA sí está versionado:
 
 ## Limitaciones
 - **Modelo tetraclásico sin entrenar**: las clases `tipo_1` y `gestacional`
-  no tienen fuente real con las 8 variables; el modelo actual es binario de
+  no tienen fuente con las 8 variables; el modelo actual es binario de
   demostración (`sano`/`tipo_2`, 4 variables, exactitud CV 0.763) y devuelve
-  0.0 en las dos clases que no puede predecir.
+  0.0 en las dos clases que no puede predecir. Avance del 7-oct: el **Dryad
+  GDM** cubre `gestacional` + controles embarazadas con HbA1c y presión
+  (pero sin `edad`/`imc`), y la solicitud de **T1DiabetesGranada** (DM1)
+  está enviada a la Secretaría del ICAR.
 - El modelo de demostración **ignora** `sexo`, `hba1c`, `presión sistólica` y
   `antecedentes familiares`: Pima no los registra.
 - Los datos son de pacientes del municipio de Calpulalpan, Tlaxcala
