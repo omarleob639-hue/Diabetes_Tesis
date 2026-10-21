@@ -96,6 +96,7 @@ def main() -> None:
     salida = df_limpio[["SampleID", COLUMNA_CLASE] + columnas_salida].rename(columns=renombre)
 
     salida[COLUMNA_CLASE] = salida[COLUMNA_CLASE].map({1: "gestacional", 0: "embarazada_sana"})
+    salida = salida.rename(columns={COLUMNA_CLASE: "clase"})
 
     SALIDA.parent.mkdir(parents=True, exist_ok=True)
     salida.to_csv(SALIDA, index=False)
@@ -103,11 +104,11 @@ def main() -> None:
     print(f"\nRegistros cargados: {inicial}")
     print(f"Registros finales: {len(salida)}")
     print(f"Tipeos convertidos a NaN: {tipeos_a_nan}")
-    print(f"Distribución clase: {dict(salida[COLUMNA_CLASE].value_counts())}")
+    print(f"Distribución clase: {dict(salida['clase'].value_counts())}")
     print("\nValores ausentes por columna:")
     print(salida[salida.columns[1:]].isna().sum().to_string())
     print("\nDescripción de la salida:")
-    print(salida[salida.columns[1:]].describe().to_string())
+    print(salida[salida.columns[2:]].describe().to_string())
     print(f"\n[ok] escrito en {SALIDA}")
 
 

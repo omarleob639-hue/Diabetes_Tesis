@@ -428,6 +428,36 @@ Recomendación previa: **exportar el modelo a ONNX y servirlo en Lambda**.
 Reduce el tamaño y el arranque respecto a TensorFlow crudo.
 
 ### 3. Modelo ML — demo binaria lista, tetraclásico bloqueado por datos
+**Baseline real-only one-vs-rest (OvR) — entrenado (7 oct).**
+Pipeline: `04_preprocesamiento_dryad.py` → `05_dataset_unificado.py` →
+`06_entrenamiento_ovr.py`.
+
+- **Tabla unificada:** 1922 filas en `data/processed/dataset_unificado.csv`
+  con las 8 variables del contrato + `clase` + `origen` + `fuente`.
+  `sano` 500, `tipo_2` 268, `gestacional` 534, `embarazada_sana` 620.
+  Unidades normalizadas a las del sistema (glucosa mg/dL, HbA1c %, mmHg).
+- **Enfoque OvR:** un binario por frontera, cada uno con datos 100 % reales y
+  solo las variables que esa fuente mide. Es la vía más defendible: no hay
+  datos inventados.
+- **Fronteras entrenadas:**
+  | Frontera | Fuente | n | Features | Exactitud CV | F1 positiva |
+  |---|---|---|---|---|---|
+  | `sano` vs `tipo_2` | Pima | 768 | edad, IMC, glucosa, PAD | **0.767** | 0.670 |
+  | `gestacional` vs `embarazada_sana` | Dryad GDM | 1154 | glucosa, HbA1c, PAS, PAD | **0.735** | 0.704 |
+- **Falta la frontera `tipo_1` vs `tipo_2`:** T1DiabetesGranada (acceso
+  aprobado, descarga del ZIP pendiente).
+- **Imputador dentro del pipeline** (mediana, ajustada en cada fold): al
+  sacarlo de la CV la frontera gestacional bajó de 0.743 a 0.735; esa
+  diferencia era fuga.
+- **Hallazgo de cobertura:** las 4 clases solo comparten `glucosa`, `PAD` y
+  `sexo`; `antecedentes_familiares` no existe en ninguna fuente (0/1922). Un
+  multiclase sobre las 8 variables necesitaría imputar 4 de 8 en casi todas
+  las filas.
+- **Advertencia clínica:** en la frontera gestacional la glucosa y la HbA1c son
+  *criterios de diagnóstico*; el modelo detecta DMG ya establecida, no predice
+  que va a aparecer.
+- **Artefactos:** `backend/model/saved_model/ovr_*.joblib` (fuera de git).
+
 **Modelo binario de demostración (Pima) — entrenado e integrado (6 oct).**
 Pipeline reproducible en `backend/notebooks/`:
 `01_exploracion_pima.py` → `02_preprocesamiento_pima.py` →
@@ -505,10 +535,16 @@ bajarlos de la fuente (el EDA sí está versionado:
 - **Modelo tetraclásico sin entrenar**: las clases `tipo_1` y `gestacional`
   no tienen fuente con las 8 variables; el modelo actual es binario de
   demostración (`sano`/`tipo_2`, 4 variables, exactitud CV 0.763) y devuelve
-  0.0 en las dos clases que no puede predecir. Avance del 7-oct: el **Dryad
-  GDM** cubre `gestacional` + controles embarazadas con HbA1c y presión
-  (pero sin `edad`/`imc`), y la solicitud de **T1DiabetesGranada** (DM1)
-  está enviada a la Secretaría del ICAR.
+  0.0 en las dos clases que no puede predecir. Avance del 7-oct: baseline
+  **OvR real-only** con 2 fronteras (`sano`/`tipo_2` 0.767 y
+  `gestacional`/`embarazada_sana` 0.735), Dryad GDM verificado y limpio, y
+  solicitud de **T1DiabetesGranada** (DM1) enviada a la Secretaría del ICAR.
+  Falta la frontera `tipo_1` y la regla que combine las fronteras en un
+  vector de 4 probabilidades.
+- **El sistema no puede distinguir `gestacional` de `tipo_2`**: ninguna de las
+  8 variables indica embarazo. Sin una variable de estado gestacional la
+  frontera es clínicamente ambigua; queda como requisito del formulario y de
+  la recolecta clínica prevista.
 - El modelo de demostración **ignora** `sexo`, `hba1c`, `presión sistólica` y
   `antecedentes familiares`: Pima no los registra.
 - Los datos son de pacientes del municipio de Calpulalpan, Tlaxcala
